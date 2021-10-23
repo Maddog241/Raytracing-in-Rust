@@ -1,6 +1,27 @@
-1. 创建向量类：定义加法，减法，数乘/除，叉乘，点乘。取模，模的平方，单位向量
+**Where's the idea of this project from?**
 
-2. write_color function
+[PPCA 2021 raytracer-tutorial](https://github.com/aik2mlj/raytracer-tutorial)
 
-3. The Ray Class
+[RayTracing in One Weekend Series](https://raytracing.github.io/)
 
+**Tasks to be Completed**
+
+- [x] book1
+- [x] book2 except for a few parts including BVH
+- [ ] concurrency
+  
+**Note** The BVH code here, which has not been completed, is by far a whole wrong shit.
+
+**Some pictures**
+
+![book1_final_scene](./images/book1_final_scene.jpg "Book1 Final Scene")
+
+![motion_blur](./images/motion_blur.jpg "Motion Blur")
+
+![checker ground](./images/checker_texture.jpg "Checker Ground")
+
+![texture_mapping](./images/texture_mapping.jpg "Texture Mapping")
+
+![cornell_box](./images/cornell_box.jpg "Cornell Box")
+
+![cornell_smoke](./images/cornell_smoke.jpg "Cornell Smoke")

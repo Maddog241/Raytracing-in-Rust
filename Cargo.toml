@@ -7,3 +7,5 @@ edition = "2018"
 
 [dependencies]
 rand = "^0.7.0"
+image = "^0.23.0"
+libc = "^0.2.0"
