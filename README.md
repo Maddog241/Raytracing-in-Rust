@@ -9,8 +9,7 @@
 - [x] book1
 - [x] book2 except for a few parts including BVH
 - [ ] concurrency
-  
-**Note** The BVH code here, which has not been completed, is by far a whole wrong shit.
+
 
 **Some pictures**
 
