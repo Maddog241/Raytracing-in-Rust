@@ -1,25 +1,25 @@
 use crate::ray::Ray;
-use crate::vec3::Point3;
+use cgmath::Point3;
 
 #[derive(Clone)]
 pub struct AABB {
-    minimum: Point3,
-    maximum: Point3,
+    minimum: Point3<f64>,
+    maximum: Point3<f64>,
 }
 
 impl AABB {
-    pub fn new(a: Point3, b: Point3) -> Self {
+    pub fn new(a: Point3<f64>, b: Point3<f64>) -> Self {
         AABB {
             minimum: a,
             maximum: b,
         }
     }
 
-    pub fn min(&self) -> Point3 {
+    pub fn min(&self) -> Point3<f64> {
         self.minimum
     }
 
-    pub fn max(&self) -> Point3 {
+    pub fn max(&self) -> Point3<f64> {
         self.maximum
     }
 
@@ -47,15 +47,15 @@ impl AABB {
 
     pub fn surrounding_box(box0: &AABB, box1: &AABB) -> Self {
         let small = Point3::new(
-            box0.min().x().min(box1.min().x()),
-            box0.min().y().min(box1.min().y()),
-            box0.min().z().min(box1.min().z()),
+            box0.min().x.min(box1.min().x),
+            box0.min().y.min(box1.min().y),
+            box0.min().z.min(box1.min().z),
         );
 
         let big = Point3::new(
-            box0.max().x().max(box1.max().x()),
-            box0.max().y().max(box1.max().y()),
-            box0.max().z().max(box1.max().z()),
+            box0.max().x.max(box1.max().x),
+            box0.max().y.max(box1.max().y),
+            box0.max().z.max(box1.max().z),
         );
 
         AABB::new(small, big)

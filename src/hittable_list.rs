@@ -6,8 +6,8 @@ use crate::objects::{Cubic, MovingSphere, RotateY, Sphere, XyRect, XzRect, YzRec
 use crate::ray::*;
 use crate::texture::{CheckerTexture, NoiseTexture, SolidColor, ImageTexture};
 use crate::utilities;
-use crate::vec3::{Point3, Vec3};
 use std::rc::Rc;
+use cgmath::*;
 
 pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>,
@@ -99,15 +99,15 @@ pub fn random_scene() -> HittableList {
                 b as f64 + 0.9 * utilities::random_double(),
             );
 
-            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+            if (center - Point3::new(4.0, 0.2, 0.0)).magnitude() > 0.9 {
                 let sphere_material: Rc<dyn Material>;
 
                 if choose_mat < 0.8 {
                     //diffuse
-                    let albedo = utilities::random() * utilities::random();
+                    let albedo = utilities::random().mul_element_wise(utilities::random());
                     sphere_material = Rc::new(Lambertian::new(albedo));
                     let center2 = center
-                        + Vec3::new(0.0, utilities::random_double_with_bounds(0.0, 0.5), 0.0);
+                        + Vector3::new(0.0, utilities::random_double_with_bounds(0.0, 0.5), 0.0);
                     world.add(Box::new(MovingSphere::new(
                         center,
                         center2,
@@ -215,8 +215,8 @@ pub fn cornell_box() -> HittableList {
     let rotated_cub1 = RotateY::new(Box::new(cub1), 18.0);
     let rotated_cub2 = RotateY::new(Box::new(cub2), -15.0);
 
-    let translated_cub1 = Translate::new(Box::new(rotated_cub1), Vec3::new(265.0, 0.0, 295.0));
-    let translated_cub2 = Translate::new(Box::new(rotated_cub2), Vec3::new(130.0, 0.0, 65.0));
+    let translated_cub1 = Translate::new(Box::new(rotated_cub1), Vector3::new(265.0, 0.0, 295.0));
+    let translated_cub2 = Translate::new(Box::new(rotated_cub2), Vector3::new(130.0, 0.0, 65.0));
 
     objects.add(Box::new(translated_cub1));
     objects.add(Box::new(translated_cub2));
@@ -272,8 +272,8 @@ pub fn cornell_smoke() -> HittableList {
     let rotated_cub1 = RotateY::new(Box::new(cub1), 18.0);
     let rotated_cub2 = RotateY::new(Box::new(cub2), -15.0);
 
-    let translated_cub1 = Translate::new(Box::new(rotated_cub1), Vec3::new(265.0, 0.0, 295.0));
-    let translated_cub2 = Translate::new(Box::new(rotated_cub2), Vec3::new(130.0, 0.0, 65.0));
+    let translated_cub1 = Translate::new(Box::new(rotated_cub1), Vector3::new(265.0, 0.0, 295.0));
+    let translated_cub2 = Translate::new(Box::new(rotated_cub2), Vector3::new(130.0, 0.0, 65.0));
 
     objects.add(Box::new(ConstantMedium::new(Box::new(translated_cub1), Box::new(SolidColor::new(Color::new(0.0, 0.0, 0.0))),  0.01)));
     objects.add(Box::new(ConstantMedium::new(Box::new(translated_cub2), Box::new(SolidColor::new(Color::new(1.0, 1.0, 1.0))),  0.01)));

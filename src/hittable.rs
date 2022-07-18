@@ -1,8 +1,8 @@
 use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::vec3::{self, Point3, Vec3};
 use std::rc::Rc;
+use cgmath::*;
 //use crate::sphere::Sphere;
 
 //Trait Hittable
@@ -13,8 +13,8 @@ pub trait Hittable {
 
 //HitRecord
 pub struct HitRecord {
-    pub p: Point3, //hit point
-    pub normal: Vec3,
+    pub p: Point3<f64>, //hit point
+    pub normal: Vector3<f64>,
     pub t: f64, //t is the value of ray.t
     pub u: f64,
     pub v: f64, //u and v are the surface coordinates
@@ -25,9 +25,9 @@ pub struct HitRecord {
 impl HitRecord {
     pub fn new(
         t: f64,
-        p: Point3,
+        p: Point3<f64>,
         r: &Ray,
-        outward_normal: vec3::Vec3,
+        outward_normal: Vector3<f64>,
         u: f64,
         v: f64,
         mat_ptr: Rc<dyn Material>,
@@ -47,8 +47,8 @@ impl HitRecord {
         rec
     }
 
-    pub fn set_face_normal(&mut self, r: &Ray, outward_normal: vec3::Vec3) {
-        if vec3::dot(r.direction, outward_normal) > 0.0 {
+    pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vector3<f64>) {
+        if r.direction.dot(outward_normal) > 0.0 {
             self.front_face = false;
             self.normal = outward_normal * -1.0;
         } else {

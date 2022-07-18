@@ -6,21 +6,21 @@ use crate::material::{Material, Isotropic};
 use crate::ray::Ray;
 use crate::texture::Texture;
 use crate::utilities;
-use crate::vec3::{self, Point3, Vec3};
 use std::rc::Rc;
+use cgmath::*;
 
 const PI: f64 = std::f64::consts::PI;
 //use crate::ray::Ray;
 //use crate::color::Color;
 
 pub struct Sphere {
-    pub center: Point3,
+    pub center: Point3<f64>,
     pub radius: f64,
     pub mat_ptr: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, mat_ptr: Rc<dyn Material>) -> Self {
+    pub fn new(center: Point3<f64>, radius: f64, mat_ptr: Rc<dyn Material>) -> Self {
         Sphere {
             center,
             radius,
@@ -28,9 +28,9 @@ impl Sphere {
         }
     }
 
-    fn get_sphere_uv(p: Point3) -> (f64, f64) {
-        let theta = (-p.y()).acos();
-        let phi = (-p.z()).atan2(p.x()) + PI;
+    fn get_sphere_uv(p: Vector3<f64>) -> (f64, f64) {
+        let theta = (-p.y).acos();
+        let phi = (-p.z).atan2(p.x) + PI;
 
         (phi / (2.0 * PI), theta / PI)
     }
@@ -41,9 +41,9 @@ impl Hittable for Sphere {
         let rec: HitRecord;
 
         let oc = r.origin - self.center;
-        let a = r.direction.length_squared();
-        let half_b = vec3::dot(oc, r.direction);
-        let c = oc.length_squared() - self.radius * self.radius;
+        let a = r.direction.magnitude2();
+        let half_b = oc.dot(r.direction);
+        let c = oc.magnitude2() - self.radius * self.radius;
 
         let discriminant = half_b * half_b - a * c;
         if discriminant < 0.0 {
@@ -59,7 +59,7 @@ impl Hittable for Sphere {
             }
         }
 
-        let outward_normal = (r.at(root) - self.center) / self.radius;
+        let outward_normal :Vector3<f64> = (r.at(root) - self.center) / self.radius;
         let (u, v) = Self::get_sphere_uv(outward_normal);
 
         rec = HitRecord::new(
@@ -76,8 +76,8 @@ impl Hittable for Sphere {
 
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut AABB) -> bool {
         *output_box = AABB::new(
-            self.center - Vec3::new(self.radius, self.radius, self.radius),
-            self.center + Vec3::new(self.radius, self.radius, self.radius),
+            self.center - Vector3::new(self.radius, self.radius, self.radius),
+            self.center + Vector3::new(self.radius, self.radius, self.radius),
         );
 
         true
@@ -86,8 +86,8 @@ impl Hittable for Sphere {
 
 //moving Sphere
 pub struct MovingSphere {
-    pub center0: Point3,
-    pub center1: Point3,
+    pub center0: Point3<f64>,
+    pub center1: Point3<f64>,
     pub time0: f64,
     pub time1: f64,
     pub radius: f64,
@@ -96,8 +96,8 @@ pub struct MovingSphere {
 
 impl MovingSphere {
     pub fn new(
-        center0: Point3,
-        center1: Point3,
+        center0: Point3<f64>,
+        center1: Point3<f64>,
         time0: f64,
         time1: f64,
         radius: f64,
@@ -113,7 +113,7 @@ impl MovingSphere {
         }
     }
 
-    pub fn center(&self, time: f64) -> Point3 {
+    pub fn center(&self, time: f64) -> Point3<f64> {
         self.center0
             + (self.center1 - self.center0) * ((time - self.time0) / (self.time1 - self.time0))
     }
@@ -134,9 +134,9 @@ impl Material for MovingSphere {
 impl Hittable for MovingSphere {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.origin - self.center(r.time);
-        let a = r.direction.length_squared();
-        let half_b = vec3::dot(oc, r.direction);
-        let c = oc.length_squared() - self.radius * self.radius;
+        let a = r.direction.magnitude2();
+        let half_b = oc.dot(r.direction);
+        let c = oc.magnitude2() - self.radius * self.radius;
 
         let discriminant = half_b * half_b - a * c;
         if discriminant < 0.0 {
@@ -168,13 +168,13 @@ impl Hittable for MovingSphere {
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
         let box0 = AABB::new(
-            self.center(time0) - Vec3::new(self.radius, self.radius, self.radius),
-            self.center(time0) + Vec3::new(self.radius, self.radius, self.radius),
+            self.center(time0) - Vector3::new(self.radius, self.radius, self.radius),
+            self.center(time0) + Vector3::new(self.radius, self.radius, self.radius),
         );
 
         let box1 = AABB::new(
-            self.center(time1) - Vec3::new(self.radius, self.radius, self.radius),
-            self.center(time1) + Vec3::new(self.radius, self.radius, self.radius),
+            self.center(time1) - Vector3::new(self.radius, self.radius, self.radius),
+            self.center(time1) + Vector3::new(self.radius, self.radius, self.radius),
         );
 
         *output_box = AABB::surrounding_box(&box0, &box1);
@@ -207,20 +207,20 @@ impl XyRect {
 
 impl Hittable for XyRect {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let t = (self.k - r.origin.z()) / (r.direction.z());
+        let t = (self.k - r.origin.z) / (r.direction.z);
         if t < t_min || t > t_max {
             return None;
         }
 
-        let x = r.origin.x() + t * r.direction.x();
-        let y = r.origin.y() + t * r.direction.y();
+        let x = r.origin.x + t * r.direction.x;
+        let y = r.origin.y + t * r.direction.y;
         if x < self.x0 || x > self.x1 || y < self.y0 || y > self.y1 {
             return None;
         }
 
         let u = (x - self.x0) / (self.x1 - self.x0);
         let v = (y - self.y0) / (self.y1 - self.y0);
-        let outward_normal = Vec3::new(0.0, 0.0, 1.0);
+        let outward_normal = Vector3::new(0.0, 0.0, 1.0);
         
         let rec = HitRecord::new(t, r.at(t), r, outward_normal, u, v, Rc::clone(&self.mp));
 
@@ -261,20 +261,20 @@ impl YzRect {
 
 impl Hittable for YzRect {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let t = (self.k - r.origin.x()) / (r.direction.x());
+        let t = (self.k - r.origin.x) / (r.direction.x);
         if t < t_min || t > t_max {
             return None;
         }
 
-        let y = r.origin.y() + t * r.direction.y();
-        let z = r.origin.z() + t * r.direction.z();
+        let y = r.origin.y + t * r.direction.y;
+        let z = r.origin.z + t * r.direction.z;
         if y < self.y0 || y > self.y1 || z < self.z0 || z > self.z1 {
             return None;
         }
 
         let u = (y - self.y0) / (self.y1 - self.y0);
         let v = (z - self.z0) / (self.z1 - self.z0);
-        let outward_normal = Vec3::new(1.0, 0.0, 0.0);
+        let outward_normal = Vector3::new(1.0, 0.0, 0.0);
 
         let rec = HitRecord::new(t, r.at(t), r, outward_normal, u, v, Rc::clone(&self.mp));
 
@@ -314,20 +314,20 @@ impl XzRect {
 }
 impl Hittable for XzRect {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let t = (self.k - r.origin.y()) / (r.direction.y());
+        let t = (self.k - r.origin.y) / (r.direction.y);
         if t < t_min || t > t_max {
             return None;
         }
 
-        let x = r.origin.x() + t * r.direction.x();
-        let z = r.origin.z() + t * r.direction.z();
+        let x = r.origin.x + t * r.direction.x;
+        let z = r.origin.z + t * r.direction.z;
         if x < self.x0 || x > self.x1 || z < self.z0 || z > self.z1 {
             return None;
         }
 
         let u = (x - self.x0) / (self.x1 - self.x0);
         let v = (z - self.z0) / (self.z1 - self.z0);
-        let outward_normal = Vec3::new(0.0, 1.0, 0.0);
+        let outward_normal = Vector3::new(0.0, 1.0, 0.0);
 
         let rec = HitRecord::new(t, r.at(t), r, outward_normal, u, v, Rc::clone(&self.mp));
         Some(rec)
@@ -345,63 +345,63 @@ impl Hittable for XzRect {
 //struct Cubic
 pub struct Cubic {
     sides: HittableList,
-    p1: Point3,
-    p2: Point3,
+    p1: Point3<f64>,
+    p2: Point3<f64>,
 }
 
 impl Cubic {
-    pub fn new(p1: Point3, p2: Point3, mat_ptr: Rc<dyn Material>) -> Self {
+    pub fn new(p1: Point3<f64>, p2: Point3<f64>, mat_ptr: Rc<dyn Material>) -> Self {
         let mut sides = HittableList::new();
 
         //front and back
         sides.add(Box::new(XyRect::new(
-            p1.x(),
-            p2.x(),
-            p1.y(),
-            p2.y(),
-            p1.z(),
+            p1.x,
+            p2.x,
+            p1.y,
+            p2.y,
+            p1.z,
             Rc::clone(&mat_ptr),
         )));
         sides.add(Box::new(XyRect::new(
-            p1.x(),
-            p2.x(),
-            p1.y(),
-            p2.y(),
-            p2.z(),
+            p1.x,
+            p2.x,
+            p1.y,
+            p2.y,
+            p2.z,
             Rc::clone(&mat_ptr),
         )));
         //up and down
         sides.add(Box::new(XzRect::new(
-            p1.x(),
-            p2.x(),
-            p1.z(),
-            p2.z(),
-            p1.y(),
+            p1.x,
+            p2.x,
+            p1.z,
+            p2.z,
+            p1.y,
             Rc::clone(&mat_ptr),
         )));
         sides.add(Box::new(XzRect::new(
-            p1.x(),
-            p2.x(),
-            p1.z(),
-            p2.z(),
-            p2.y(),
+            p1.x,
+            p2.x,
+            p1.z,
+            p2.z,
+            p2.y,
             Rc::clone(&mat_ptr),
         )));
         //left and right
         sides.add(Box::new(YzRect::new(
-            p1.y(),
-            p2.y(),
-            p1.z(),
-            p2.z(),
-            p1.x(),
+            p1.y,
+            p2.y,
+            p1.z,
+            p2.z,
+            p1.x,
             Rc::clone(&mat_ptr),
         )));
         sides.add(Box::new(YzRect::new(
-            p1.y(),
-            p2.y(),
-            p1.z(),
-            p2.z(),
-            p2.x(),
+            p1.y,
+            p2.y,
+            p1.z,
+            p2.z,
+            p2.x,
             Rc::clone(&mat_ptr),
         )));
         Cubic {
@@ -447,9 +447,9 @@ impl RotateY {
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
-                    let x = (i as f64) * bbox.max().x() + (1.0 - i as f64) * bbox.min().x();
-                    let y = (j as f64) * bbox.max().y() + (1.0 - j as f64) * bbox.min().y();
-                    let z = (k as f64) * bbox.max().z() + (1.0 - k as f64) * bbox.min().z();
+                    let x = (i as f64) * bbox.max().x + (1.0 - i as f64) * bbox.min().x;
+                    let y = (j as f64) * bbox.max().y + (1.0 - j as f64) * bbox.min().y;
+                    let z = (k as f64) * bbox.max().z + (1.0 - k as f64) * bbox.min().z;
 
                     let newx = cos_theta * x + sin_theta * z;
                     let newz = -sin_theta * x + cos_theta * z;
@@ -518,11 +518,11 @@ impl Hittable for RotateY {
 
 pub struct Translate{
     obj: Box<dyn Hittable>,
-    offset: Vec3,
+    offset: Vector3<f64>,
 }
 
 impl Translate {
-    pub fn new(obj: Box<dyn Hittable>, offset: Vec3) -> Self {
+    pub fn new(obj: Box<dyn Hittable>, offset: Vector3<f64>) -> Self {
         Translate {
             obj,
             offset,
@@ -584,7 +584,7 @@ impl Hittable for ConstantMedium {
             }
         }
 
-        let ray_length = r.direction.length();
+        let ray_length = r.direction.magnitude();
         let distance_inside_boundary = (t2 - t1) * ray_length;
         let hit_distance = self.neg_inv_density * utilities::random_double().log10();
 
@@ -600,7 +600,7 @@ impl Hittable for ConstantMedium {
                 t,
                 p,
                 mat_ptr: Rc::clone(&self.phase_function),
-                normal: Vec3::new(1.0, 0.0, 0.0),
+                normal: Vector3::new(1.0, 0.0, 0.0),
                 front_face: true,
                 u: 0.0, 
                 v: 0.0,

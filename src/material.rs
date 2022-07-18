@@ -2,9 +2,9 @@ use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::texture::{SolidColor, Texture};
-use crate::utilities;
-use crate::vec3::{self, Point3, Vec3};
+use crate::utilities::*;
 use std::rc::Rc;
+use cgmath::*;
 
 //Definition of Material
 pub trait Material {
@@ -16,7 +16,7 @@ pub trait Material {
         scattered: &mut Ray,
     ) -> bool;
     
-    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+    fn emitted(&self, _u: f64, _v: f64, _p: Point3<f64>) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 }
@@ -35,13 +35,13 @@ impl Material for Metal {
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
-        let reflected = reflect(utilities::unit_vector(r_in.direction), rec);
+        let reflected = reflect(unit_vector(r_in.direction), rec);
         scattered.origin = rec.p;
-        scattered.direction = reflected + utilities::random_in_unit_sphere() * self.fuzz;
+        scattered.direction = reflected + random_in_unit_sphere() * self.fuzz;
         scattered.time = r_in.time;
 
         *attenuation = self.albedo.clone();
-        vec3::dot(scattered.direction, rec.normal) > 0.0
+        scattered.direction.dot(rec.normal) > 0.0
     }
 }
 
@@ -76,9 +76,9 @@ impl Material for Lambertian {
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
-        let mut scatter_direction = rec.normal + utilities::random_unit_vector();
+        let mut scatter_direction = rec.normal + random_unit_vector();
 
-        if scatter_direction.near_zero() {
+        if near_zero(scatter_direction) {
             scatter_direction = rec.normal;
         }
 
@@ -120,8 +120,8 @@ impl Material for Dielectric {
             self.index_of_refraction
         };
 
-        let unit_direction = utilities::unit_vector(r_in.direction);
-        let cos_theta = min(vec3::dot(r_in.direction * (-1.0), rec.normal), 1.0);
+        let unit_direction = unit_vector(r_in.direction);
+        let cos_theta = min(-r_in.direction.dot(rec.normal), 1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = sin_theta * refraction_ratio > 1.0;
@@ -159,14 +159,14 @@ impl Material for DiffuseLight {
     ) -> bool {
         false
     }
-    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+    fn emitted(&self, u: f64, v: f64, p: Point3<f64>) -> Color {
         self.emit.value(u, v, p)
     }
 }
 
 //Other funtions
-pub fn reflect(v: Vec3, rec: &HitRecord) -> Vec3 {
-    v - rec.normal * vec3::dot(v, rec.normal) * 2.0
+pub fn reflect(v: Vector3<f64>, rec: &HitRecord) -> Vector3<f64> {
+    v - rec.normal * v.dot(rec.normal) * 2.0
 }
 
 pub fn min(v1: f64, v2: f64) -> f64 {
@@ -187,10 +187,10 @@ pub fn abs(v: f64) -> f64 {
 
 
 // !!!!!折射函数
-pub fn refract(unit_direction: Vec3, normal: Vec3, ratio: f64) -> Vec3 {
-    let cos_theta = min(vec3::dot(unit_direction * (-1.0), normal), 1.0);
+pub fn refract(unit_direction: Vector3<f64>, normal: Vector3<f64>, ratio: f64) -> Vector3<f64> {
+    let cos_theta = min(-unit_direction.dot(normal), 1.0);
     let r_out_prep = (unit_direction + normal * cos_theta) * ratio;
-    let r_out_parallel = normal * (-1.0) * (abs(1.0 - r_out_prep.length_squared())).sqrt();
+    let r_out_parallel = normal * (-1.0) * (abs(1.0 - r_out_prep.magnitude2())).sqrt();
     r_out_prep + r_out_parallel
 }
 
@@ -206,7 +206,7 @@ impl Isotropic {
 }
 impl Material for Isotropic {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
-        *scattered = Ray::new(rec.p, utilities::random_in_unit_sphere(), r_in.time);
+        *scattered = Ray::new(rec.p, random_in_unit_sphere(), r_in.time);
         *attenuation = self.albedo.value(rec.u, rec.v, rec.p);
         true
     }   

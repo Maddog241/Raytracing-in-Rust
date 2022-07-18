@@ -1,15 +1,15 @@
 use crate::ray::Ray;
 use crate::utilities;
-use crate::vec3::{self, Point3, Vec3};
+use cgmath::*;
 
 pub struct Camera {
-    origin: Point3,
-    horizontal: Vec3,
-    vertical: Vec3,
-    lower_left_corner: Point3,
-    u: Vec3,
-    v: Vec3,
-    w: Vec3,
+    origin: Point3<f64>,
+    horizontal: Vector3<f64>,
+    vertical: Vector3<f64>,
+    lower_left_corner: Point3<f64>,
+    u: Vector3<f64>,
+    v: Vector3<f64>,
+    w: Vector3<f64>,
     lens_radius: f64,
     time0: f64,
     time1: f64,
@@ -17,9 +17,9 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        look_from: Point3,
-        look_at: Point3,
-        vup: Vec3,
+        look_from: Point3<f64>,
+        look_at: Point3<f64>,
+        vup: Vector3<f64>,
         vfov: f64,
         aspect_ratio: f64,
         aperture: f64,
@@ -37,8 +37,8 @@ impl Camera {
         let viewport_width = viewport_height * aspect_ratio;
 
         let w = utilities::unit_vector(look_from - look_at);
-        let u = utilities::unit_vector(vec3::cross(vup, w));
-        let v = vec3::cross(w, u);
+        let u = utilities::unit_vector(vup.cross(w));
+        let v = w.cross(u);
 
         let origin = look_from;
         let horizontal = u * viewport_width * focus_dist;
@@ -58,9 +58,9 @@ impl Camera {
         }
     }
 
-    pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+    pub fn cast_ray(&self, s: f64, t: f64) -> Ray {
         let rd = random_in_unit_dist() * self.lens_radius;
-        let offset = self.u * rd.x() + self.v * rd.y();
+        let offset = self.u * rd.x + self.v * rd.y;
 
         Ray {
             origin: self.origin + offset,
@@ -72,14 +72,14 @@ impl Camera {
     }
 }
 
-pub fn random_in_unit_dist() -> Vec3 {
+pub fn random_in_unit_dist() -> Vector3<f64> {
     loop {
-        let p = Vec3::new(
+        let p = Vector3::new(
             utilities::random_double_with_bounds(-1.0, 1.0),
             utilities::random_double_with_bounds(-1.0, 1.0),
             0.0,
         );
-        if p.length_squared() >= 1.0 {
+        if p.magnitude2() >= 1.0 {
             continue;
         }
         return p;

@@ -1,12 +1,12 @@
 use crate::color::Color;
 use crate::utilities;
-use crate::vec3::Point3;
 use image::open;
+use cgmath::*;
 //trait Textrue
 const BYTES_PER_PIXEL: usize = 3;
 
 pub trait Texture {
-    fn value(&self, u: f64, v: f64, p: Point3) -> Color;
+    fn value(&self, u: f64, v: f64, p: Point3<f64>) -> Color;
 }
 
 //struct SolidColor
@@ -21,7 +21,7 @@ impl SolidColor {
 }
 
 impl Texture for SolidColor {
-    fn value(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+    fn value(&self, _u: f64, _v: f64, _p: Point3<f64>) -> Color {
         self.color_value
     }
 }
@@ -39,8 +39,8 @@ impl CheckerTexture {
 
 }
 impl Texture for CheckerTexture {
-    fn value(&self, u: f64, v: f64, p: Point3) -> Color {
-        let sines = (10.0 * p.x()).sin() * (10.0 * p.y()).sin() * (10.0 * p.z()).sin();
+    fn value(&self, u: f64, v: f64, p: Point3<f64>) -> Color {
+        let sines = (10.0 * p.x).sin() * (10.0 * p.y).sin() * (10.0 * p.z).sin();
         if sines < 0.0 {
             self.odd.value(u, v, p)
         } else {
@@ -50,8 +50,8 @@ impl Texture for CheckerTexture {
 }
 
 impl Texture for &CheckerTexture {
-    fn value(&self, u: f64, v: f64, p: Point3) -> Color {
-        let sines = (10.0 * p.x()).sin() * (10.0 * p.y()).sin() * (10.0 * p.z()).sin();
+    fn value(&self, u: f64, v: f64, p: Point3<f64>) -> Color {
+        let sines = (10.0 * p.x).sin() * (10.0 * p.y).sin() * (10.0 * p.z).sin();
         if sines < 0.0 {
             self.odd.value(u, v, p)
         } else {
@@ -86,9 +86,9 @@ impl Perlin {
             perm_z,
         }
     }
-    pub fn noise(&self, p: Point3) -> f64 {
-        let (u, v, w) = (p.x()-p.x().floor(), p.y()-p.y().floor(), p.z()-p.z().floor());
-        let (i, j, k) = (p.x().floor(), p.y().floor(), p.z().floor());
+    pub fn noise(&self, p: Point3<f64>) -> f64 {
+        let (u, v, w) = (p.x-p.x.floor(), p.y-p.y.floor(), p.z-p.z.floor());
+        let (i, j, k) = (p.x.floor(), p.y.floor(), p.z.floor());
 
         let (u, v, w) = (u*u*(3.0-2.0*u), v*v*(3.0-2.0*v), w*w*(3.0-2.0*w));
 
@@ -166,7 +166,7 @@ impl NoiseTexture {
 }
 
 impl Texture for NoiseTexture {
-    fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
+    fn value(&self, _u: f64, _v: f64, p: Point3<f64>) -> Color {
         Color::new(1.0, 1.0, 1.0) * self.noise.noise(p * self.scale)
     }
 }
@@ -193,7 +193,7 @@ impl ImageTexture {
 }
 
 impl Texture for ImageTexture {
-    fn value(&self, u: f64, v: f64, _p: Point3) -> Color {
+    fn value(&self, u: f64, v: f64, _p: Point3<f64>) -> Color {
         let u = utilities::clamp(u, 0.0, 1.0);
         let v = 1.0 - utilities::clamp(v, 0.0, 1.0);
     
