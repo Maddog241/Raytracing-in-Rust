@@ -20,7 +20,7 @@ impl Camera {
         look_from: Point3<f64>,
         look_at: Point3<f64>,
         vup: Vector3<f64>,
-        vfov: f64,
+        fov: f64,
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
@@ -31,7 +31,7 @@ impl Camera {
         //look_at: the view direction
         //vup: the up vector
         //time0 - time1: the time interval when the camera send out rays.
-        let theta = utilities::degrees_to_radians(vfov);
+        let theta = utilities::degrees_to_radians(fov);
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h;
         let viewport_width = viewport_height * aspect_ratio;
@@ -85,3 +85,4 @@ pub fn random_in_unit_dist() -> Vector3<f64> {
         return p;
     }
 }
+

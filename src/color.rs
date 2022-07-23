@@ -57,5 +57,5 @@ pub fn ray_color(r: &Ray, background: Color, world: &HittableList, depth: usize)
         return emitted;
     }
 
-    emitted + ray_color(&scattered, background, world, depth - 1).mul_element_wise(attenuation)
+    emitted + ray_color(&scattered, background, world, depth - 1).mul_element_wise(attenuation) 
 }

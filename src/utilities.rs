@@ -63,20 +63,4 @@ pub fn near_zero(v: Vector3<f64>) -> bool {
     if v.magnitude() < 0.01 { true } else { false }
 }
 
-/*
-pub fn random_in_semisphere(normal: Vector3<f64>) -> Vector3<f64> {
-    let random_direction = random_in_unit_sphere();
-    if vec3::dot(random_direction, normal) >= 0.0 {
-        return random_direction
-    } else {
-        random_direction * (-1.0)
-    }
-}
-*/
 
-/*
-#[cfg(test)]
-mod test {
-    #[test]
-}
-*/
